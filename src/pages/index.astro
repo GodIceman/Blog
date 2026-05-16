@@ -1,0 +1,224 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { getCollection } from 'astro:content';
+
+const allPosts = (await getCollection('posts'))
+  .filter((post) => !post.data.draft)
+  .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+
+const postsByYear = allPosts.reduce<Record<string, typeof allPosts>>((acc, post) => {
+  const year = post.data.date.getFullYear().toString();
+  if (!acc[year]) acc[year] = [];
+  acc[year].push(post);
+  return acc;
+}, {});
+
+const years = Object.keys(postsByYear).sort((a, b) => Number(b) - Number(a));
+---
+
+<BaseLayout title="首页">
+  <section class="timeline">
+    {years.map((year) => (
+      <div class="timeline-year">
+        <div class="year-marker">
+          <div class="year-dot" />
+          <h2 class="year-label">{year}</h2>
+        </div>
+        <div class="year-posts">
+          {postsByYear[year].map((post) => {
+            const month = post.data.date.getMonth() + 1;
+            const day = post.data.date.getDate();
+            const formattedDate = `${month}月${day}日`;
+            return (
+              <a href={`/posts/${post.id}`} class="timeline-post">
+                <div class="post-dot-line">
+                  <div class="post-dot" />
+                  <div class="post-line" />
+                </div>
+                <div class="post-body">
+                  <div class="post-date">{formattedDate}</div>
+                  <h3 class="post-title">{post.data.title}</h3>
+                  <div class="post-info">
+                    {post.data.tags.map((tag) => (
+                      <span class="post-tag">#{tag}</span>
+                    ))}
+                  </div>
+                </div>
+              </a>
+            );
+          })}
+        </div>
+      </div>
+    ))}
+  </section>
+</BaseLayout>
+
+<style>
+  .hero {
+    text-align: center;
+    padding: 3rem 0 2.5rem;
+    border-bottom: 1px solid var(--color-border);
+    margin-bottom: 2.5rem;
+  }
+
+  .hero-title {
+    font-family: var(--font-serif);
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--color-text);
+    margin-bottom: 0.5rem;
+    letter-spacing: 0.03em;
+  }
+
+  .hero-subtitle {
+    color: var(--color-text-secondary);
+    font-size: 1.05rem;
+    font-weight: 300;
+    margin-bottom: 1rem;
+  }
+
+  .hero-stats {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--color-text-muted);
+    font-size: 0.85rem;
+  }
+
+  .stat-divider {
+    color: var(--color-border);
+  }
+
+  .timeline {
+    padding: 0 0 2rem;
+  }
+
+  .timeline-year {
+    margin-bottom: 2rem;
+  }
+
+  .year-marker {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+  }
+
+  .year-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--color-accent);
+    flex-shrink: 0;
+  }
+
+  .year-label {
+    font-family: var(--font-serif);
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--color-text);
+  }
+
+  .year-posts {
+    padding-left: 1.5rem;
+    border-left: 2px solid var(--color-border);
+    margin-left: 5px;
+  }
+
+  .timeline-post {
+    display: flex;
+    gap: 1rem;
+    padding: 1rem 0;
+    text-decoration: none;
+    color: inherit;
+    transition: background 0.2s;
+    border-radius: 6px;
+  }
+
+  .timeline-post:hover {
+    background: var(--color-hover-bg);
+  }
+
+  .post-dot-line {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-top: 0.35rem;
+    flex-shrink: 0;
+  }
+
+  .post-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--color-timeline);
+    border: 2px solid var(--color-accent);
+    flex-shrink: 0;
+  }
+
+  .post-line {
+    width: 2px;
+    flex: 1;
+    background: transparent;
+  }
+
+  .post-body {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .post-date {
+    font-size: 0.8rem;
+    color: var(--color-text-muted);
+    margin-bottom: 0.25rem;
+  }
+
+  .timeline-post:hover .post-date {
+    color: var(--color-accent);
+  }
+
+  .post-title {
+    font-family: var(--font-serif);
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--color-text);
+    line-height: 1.5;
+    margin-bottom: 0.35rem;
+    transition: color 0.2s;
+  }
+
+  .timeline-post:hover .post-title {
+    color: var(--color-accent);
+  }
+
+  .post-info {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .post-tag {
+    color: var(--color-text-muted);
+    font-size: 0.75rem;
+  }
+
+  @media (max-width: 640px) {
+    .hero-title {
+      font-size: 1.5rem;
+    }
+
+    .hero-subtitle {
+      font-size: 0.95rem;
+    }
+
+    .year-label {
+      font-size: 1.25rem;
+    }
+
+    .post-title {
+      font-size: 1rem;
+    }
+  }
+</style>
