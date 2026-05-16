@@ -1,5 +1,5 @@
-import { defineConfig } from 'astro/config';
+import { defineConfig } from "astro/config";
 
 export default defineConfig({
-  site: 'https://your-blog.pages.dev',
+  site: "https://godiceman.edgeonepages.com",
 });
